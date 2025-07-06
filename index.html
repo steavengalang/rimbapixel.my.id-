@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RimbaPixel - Minecraft Server Indonesia</title>
-    <meta name="description" content="RimbaPixel - Server Minecraft Indonesia dengan Mini Games, Survival RPG, Boss Fights, dan Skill System. Join sekarang!">
+    <meta name="description" content="RimbaPixel - Server Minecraft Indonesia dengan Survival RPG, Boss Fights, dan Skill System. Join sekarang!">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -211,10 +211,82 @@
             border: 1px solid #00ff88;
         }
 
+        /* Commands Section */
+        .commands {
+            padding: 80px 0;
+            background: #0a0a0a;
+        }
+
+        .commands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .command-category {
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .command-category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .command-category h3 {
+            color: #00ff88;
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .command-category h3 i {
+            font-size: 1.2rem;
+        }
+
+        .command-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .command-item {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .command-item:hover {
+            border-color: #00ff88;
+            transform: translateX(5px);
+        }
+
+        .command-name {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #00ff88;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .command-desc {
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
         /* Features Section */
         .features {
             padding: 80px 0;
-            background: #0a0a0a;
+            background: #111;
         }
 
         .features-grid {
@@ -248,7 +320,7 @@
         /* Rules Section */
         .rules {
             padding: 80px 0;
-            background: #111;
+            background: #0a0a0a;
         }
 
         .rules-list {
@@ -280,7 +352,7 @@
         /* Stats Section */
         .stats {
             padding: 80px 0;
-            background: #0a0a0a;
+            background: #111;
         }
 
         .stats-grid {
@@ -413,7 +485,8 @@
             }
             
             .server-grid,
-            .features-grid {
+            .features-grid,
+            .commands-grid {
                 grid-template-columns: 1fr;
             }
             
@@ -431,6 +504,7 @@
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#server">Server</a></li>
+                <li><a href="#commands">Commands</a></li>
                 <li><a href="#features">Features</a></li>
                 <li><a href="#rules">Rules</a></li>
                 <li><a href="#stats">Stats</a></li>
@@ -442,13 +516,13 @@
     <section id="home" class="hero">
         <div class="hero-content">
             <h1>RimbaPixel</h1>
-            <p>Server Minecraft Indonesia Terbaik dengan Mini Games & Survival RPG</p>
+            <p>Server Minecraft Indonesia Terbaik dengan Survival RPG Experience</p>
             <div class="hero-buttons">
                 <a href="#server" class="btn btn-primary">
                     <i class="fas fa-play"></i> Join Server
                 </a>
-                <a href="#features" class="btn btn-secondary">
-                    <i class="fas fa-gamepad"></i> Explore Features
+                <a href="#commands" class="btn btn-secondary">
+                    <i class="fas fa-terminal"></i> View Commands
                 </a>
             </div>
         </div>
@@ -458,82 +532,239 @@
     <section id="server" class="server-info">
         <div class="container">
             <h2 class="section-title">Join Our Server</h2>
-            <p class="section-subtitle">Connect and start your adventure in RimbaPixel</p>
+            <p class="section-subtitle">Connect sekarang dan rasakan pengalaman bermain yang tak terlupakan!</p>
             
             <div class="server-grid">
                 <div class="server-card">
-                    <i class="fab fa-java"></i>
+                    <i class="fas fa-desktop"></i>
                     <h3>Java Edition</h3>
-                    <p>Untuk PC/Mac/Linux</p>
                     <div class="server-ip">rimbapixel.net:19102</div>
-                    <p>Version: 1.9-1.2x.x</p>
+                    <p>Version: 1.20.x</p>
+                    <p>Cross Platform Support</p>
                 </div>
                 
                 <div class="server-card">
                     <i class="fas fa-mobile-alt"></i>
                     <h3>Bedrock Edition</h3>
-                    <p>Untuk Mobile/Console</p>
                     <div class="server-ip">rimbapixel.net</div>
-                    <div class="server-ip">Port: 19102</div>
-                    <p>Version: 1.20.x</p>
+                    <p>Port: 19102</p>
+                    <p>Cross-Platform Support</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features -->
+    <!-- Commands Section -->
+    <section id="commands" class="commands">
+        <div class="container">
+            <h2 class="section-title">Server Commands</h2>
+            <p class="section-subtitle">Daftar lengkap command yang tersedia di RimbaPixel</p>
+            
+            <div class="commands-grid">
+                <div class="command-category">
+                    <h3><i class="fas fa-shopping-cart"></i> Economy & Shop</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-name">/rshop</div>
+                            <div class="command-desc">Membuka menu toko server untuk membeli dan menjual item</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/bal</div>
+                            <div class="command-desc">Cek saldo money kamu saat ini</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/pay [player] [amount]</div>
+                            <div class="command-desc">Transfer uang ke player lain</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/sell hand</div>
+                            <div class="command-desc">Jual item yang sedang kamu pegang</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/ah</div>
+                            <div class="command-desc">Buka auction house untuk jual beli dengan player lain</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <h3><i class="fas fa-map-marked-alt"></i> Warp & Teleport</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-name">/warp</div>
+                            <div class="command-desc">Lihat daftar semua warp yang tersedia</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/warp [nama]</div>
+                            <div class="command-desc">Teleport ke warp tertentu (spawn, mall, farm, dll)</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/pvpwarp</div>
+                            <div class="command-desc">Teleport ke arena PvP untuk bertarung</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/spawn</div>
+                            <div class="command-desc">Kembali ke spawn point utama</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/home</div>
+                            <div class="command-desc">Teleport ke home yang sudah kamu set</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/sethome [nama]</div>
+                            <div class="command-desc">Set home baru di lokasi kamu berdiri</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <h3><i class="fas fa-shield-alt"></i> Claim & Protection</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-name">/claim</div>
+                            <div class="command-desc">Claim area untuk melindungi build kamu</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/claimlist</div>
+                            <div class="command-desc">Lihat daftar semua claim yang kamu miliki</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/trust [player]</div>
+                            <div class="command-desc">Beri akses ke player lain di claim kamu</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/untrust [player]</div>
+                            <div class="command-desc">Hapus akses player dari claim kamu</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/abandonclaim</div>
+                            <div class="command-desc">Hapus claim yang sedang kamu berdiri di dalamnya</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <h3><i class="fas fa-book"></i> Info & Rules</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-name">/rules</div>
+                            <div class="command-desc">Lihat semua aturan server RimbaPixel</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/info</div>
+                            <div class="command-desc">Informasi umum tentang server</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/help</div>
+                            <div class="command-desc">Bantuan dan panduan bermain</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/discord</div>
+                            <div class="command-desc">Dapatkan link Discord server</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/vote</div>
+                            <div class="command-desc">Link untuk vote server dan dapatkan reward</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <h3><i class="fas fa-users"></i> Social & Party</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-name">/msg [player] [pesan]</div>
+                            <div class="command-desc">Kirim pesan private ke player lain</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/party create</div>
+                            <div class="command-desc">Buat party baru untuk bermain bersama</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/party invite [player]</div>
+                            <div class="command-desc">Undang player ke party kamu</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/ignore [player]</div>
+                            <div class="command-desc">Blokir chat dari player tertentu</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/list</div>
+                            <div class="command-desc">Lihat daftar player yang sedang online</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="command-category">
+                    <h3><i class="fas fa-magic"></i> Skills & RPG</h3>
+                    <div class="command-list">
+                        <div class="command-item">
+                            <div class="command-name">/skills</div>
+                            <div class="command-desc">Buka menu skill dan statistik RPG kamu</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/jobs</div>
+                            <div class="command-desc">Lihat dan pilih job/profesi</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/mcstats</div>
+                            <div class="command-desc">Lihat statistik gameplay kamu</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/quest</div>
+                            <div class="command-desc">Buka menu quest dan misi harian</div>
+                        </div>
+                        <div class="command-item">
+                            <div class="command-name">/rankup</div>
+                            <div class="command-desc">Naik rank jika syarat sudah terpenuhi</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
     <section id="features" class="features">
         <div class="container">
             <h2 class="section-title">Server Features</h2>
-            <p class="section-subtitle">Discover amazing features that make RimbaPixel special</p>
+            <p class="section-subtitle">Fitur-fitur menarik yang membuat RimbaPixel istimewa</p>
             
             <div class="features-grid">
                 <div class="feature-card">
-                    <i class="fas fa-gamepad"></i>
-                    <h3>Mini Games</h3>
-                    <p>Berbagai mini games seru seperti SkyWars, BedWars, dan lainnya</p>
-                </div>
-                
-                <div class="feature-card">
-                    <i class="fas fa-tree"></i>
-                    <h3>Survival RPG</h3>
-                    <p>Mode survival dengan sistem RPG, level, dan skill yang mendalam</p>
-                </div>
-                
-                <div class="feature-card">
                     <i class="fas fa-dragon"></i>
                     <h3>Boss Fights</h3>
-                    <p>Lawan boss-boss epic dengan reward yang menggiurkan</p>
+                    <p>Lawan boss epic dengan reward menarik dan drop rare items</p>
                 </div>
                 
                 <div class="feature-card">
-                    <i class="fas fa-magic"></i>
+                    <i class="fas fa-gem"></i>
+                    <h3>Custom Items</h3>
+                    <p>Koleksi item custom dengan ability unik dan enchantment khusus</p>
+                </div>
+                
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
                     <h3>Skill System</h3>
-                    <p>Sistem skill yang beragam untuk customize gameplay kamu</p>
+                    <p>Tingkatkan skill mining, farming, combat, dan lainnya</p>
                 </div>
                 
                 <div class="feature-card">
-                    <i class="fas fa-shield-alt"></i>
-                    <h3>No Griefing</h3>
-                    <p>Server yang aman dari griefing dengan sistem proteksi advanced</p>
+                    <i class="fas fa-home"></i>
+                    <h3>Land Claiming</h3>
+                    <p>Lindungi build dan base kamu dari griefer dengan sistem claim</p>
                 </div>
                 
                 <div class="feature-card">
-                    <i class="fas fa-users"></i>
-                    <h3>Community</h3>
-                    <p>Komunitas friendly dengan player dan staff yang membantu</p>
+                    <i class="fas fa-coins"></i>
+                    <h3>Economy System</h3>
+                    <p>Ekonomi yang seimbang dengan berbagai cara untuk earning money</p>
                 </div>
                 
                 <div class="feature-card">
-                    <i class="fas fa-store"></i>
-                    <h3>Economy</h3>
-                    <p>Sistem ekonomi yang seimbang dengan player shops dan auction</p>
-                </div>
-                
-                <div class="feature-card">
-                    <i class="fas fa-trophy"></i>
-                    <h3>Achievements</h3>
-                    <p>Sistem achievement dan ranking untuk kompetisi sehat</p>
+                    <i class="fas fa-gamepad"></i>
+                    <h3>Cross-Platform</h3>
+                    <p>Bermain bersama teman di Java dan Bedrock Edition</p>
                 </div>
             </div>
         </div>
