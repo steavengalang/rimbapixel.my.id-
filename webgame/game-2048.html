@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2048 - Web Game Collection</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-wrapper">
+        <div class="top-bar">
+            <a href="index.html" class="back-button">← Back</a>
+            <button id="fullscreenToggle" class="control-button">⛶ Fullscreen</button>
+        </div>
+        
+        <div class="game-container">
+            <div class="game-2048-layout">
+                <div class="game-header">
+                    <div class="resource-display">
+                        <div class="resource-item">
+                            <span class="resource-icon">🏆</span>
+                            Score: <span id="score">0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-icon">🌟</span>
+                            Best: <span id="bestScore">0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-icon">🎯</span>
+                            Target: <span>2048</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="game-board game-2048-board">
+                    <div id="gameBoard"></div>
+                </div>
+                
+                <div class="game-controls">
+                    <div class="control-group">
+                        <button id="newGame" class="control-button">🆕 New Game</button>
+                        <button id="soundToggle" class="control-button">🔊 Sound</button>
+                    </div>
+                </div>
+                
+                <div class="mobile-controls">
+                    <div class="controls-info">
+                        <p>Use arrow keys or WASD to move tiles!</p>
+                        <p>Combine tiles with the same number to reach 2048!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-popup" id="gameOver" style="display: none;">
+        <div class="popup-content">
+            <h2 id="gameOverTitle">Game Over!</h2>
+            <p id="gameOverMessage">Your Score: <span id="finalScore">0</span></p>
+            <button class="popup-button" onclick="newGame()">Try Again</button>
+            <button class="popup-button" onclick="window.location.href='index.html'">Back to Menu</button>
+        </div>
+    </div>
+
+    <script src="game-2048.js"></script>
+    
+    <script>
+        // Fullscreen functionality
+        document.getElementById('fullscreenToggle').addEventListener('click', () => {
+            const wrapper = document.querySelector('.game-wrapper');
+            
+            if (!document.fullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
+                }
+                wrapper.classList.add('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit Fullscreen';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                wrapper.classList.remove('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+            }
+        });
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            const wrapper = document.querySelector('.game-wrapper');
+            if (!document.fullscreenElement) {
+                wrapper.classList.remove('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+            } else {
+                wrapper.classList.add('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit Fullscreen';
+            }
+        }
+    </script>
+</body>
+</html> 

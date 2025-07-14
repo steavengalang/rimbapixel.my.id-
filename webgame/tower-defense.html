@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tower Defense - Web Game Collection</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-wrapper">
+        <div class="top-bar">
+            <a href="index.html" class="back-button">← Back</a>
+            <button id="fullscreenToggle" class="control-button">⛶ Fullscreen</button>
+        </div>
+        
+        <div class="game-container">
+            <div class="tower-defense-layout">
+                <div class="game-header">
+                    <div class="resource-display">
+                        <div class="resource-item">
+                            <span class="resource-icon">💰</span>
+                            Gold: <span id="gold">100</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-icon">❤️</span>
+                            Lives: <span id="lives">20</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-icon">🌊</span>
+                            Wave: <span id="wave">1</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-icon">🏆</span>
+                            Score: <span id="score">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="game-board">
+                    <canvas id="gameCanvas" width="800" height="600"></canvas>
+                </div>
+                
+                <div class="game-controls">
+                    <div class="control-group">
+                        <button id="startGame" class="control-button">▶️ Start Game</button>
+                        <button id="pauseGame" class="control-button">⏸️ Pause</button>
+                        <button id="soundToggle" class="control-button">🔊 Sound</button>
+                        <button id="nextWave" class="control-button" disabled>🌊 Next Wave</button>
+                    </div>
+                    
+                    <div class="power-ups">
+                        <button id="airStrike" class="power-up-button" disabled>
+                            <span class="power-up-icon">✈️</span>
+                            <span class="power-up-text">Air Strike (3)</span>
+                        </button>
+                        <button id="freeze" class="power-up-button" disabled>
+                            <span class="power-up-icon">❄️</span>
+                            <span class="power-up-text">Freeze (3)</span>
+                        </button>
+                        <button id="repair" class="power-up-button" disabled>
+                            <span class="power-up-icon">🔧</span>
+                            <span class="power-up-text">Repair (3)</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tower-selection">
+                    <h3>Towers</h3>
+                    <div class="tower-grid">
+                        <div class="tower-card" data-tower="basic">
+                            <div class="tower-icon">🔫</div>
+                            <div class="tower-info">
+                                <h3>Basic Tower</h3>
+                                <p>Fast firing rate</p>
+                                <div class="tower-cost">$10</div>
+                            </div>
+                        </div>
+                        <div class="tower-card" data-tower="cannon">
+                            <div class="tower-icon">💥</div>
+                            <div class="tower-info">
+                                <h3>Cannon</h3>
+                                <p>High damage, slow</p>
+                                <div class="tower-cost">$25</div>
+                            </div>
+                        </div>
+                        <div class="tower-card" data-tower="ice">
+                            <div class="tower-icon">❄️</div>
+                            <div class="tower-info">
+                                <h3>Ice Tower</h3>
+                                <p>Slows enemies</p>
+                                <div class="tower-cost">$20</div>
+                            </div>
+                        </div>
+                        <div class="tower-card" data-tower="laser">
+                            <div class="tower-icon">⚡</div>
+                            <div class="tower-info">
+                                <h3>Laser</h3>
+                                <p>Continuous damage</p>
+                                <div class="tower-cost">$40</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tower-upgrades" id="towerUpgrades" style="display: none;">
+                    <h3>Tower Upgrades</h3>
+                    <div class="upgrade-grid">
+                        <button id="upgradeDamage" class="upgrade-button">
+                            <div class="upgrade-icon">⚔️</div>
+                            <div class="upgrade-text">Damage</div>
+                            <div class="upgrade-cost">$15</div>
+                        </button>
+                        <button id="upgradeRange" class="upgrade-button">
+                            <div class="upgrade-icon">🎯</div>
+                            <div class="upgrade-text">Range</div>
+                            <div class="upgrade-cost">$12</div>
+                        </button>
+                        <button id="upgradeSpeed" class="upgrade-button">
+                            <div class="upgrade-icon">⚡</div>
+                            <div class="upgrade-text">Speed</div>
+                            <div class="upgrade-cost">$10</div>
+                        </button>
+                        <button id="sellTower" class="sell-button">
+                            <div class="upgrade-icon">💰</div>
+                            <div class="upgrade-text">Sell</div>
+                            <div class="upgrade-cost">50%</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="tower-defense.js"></script>
+    
+    <script>
+        // Fullscreen functionality
+        document.getElementById('fullscreenToggle').addEventListener('click', () => {
+            const wrapper = document.querySelector('.game-wrapper');
+            
+            if (!document.fullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
+                }
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit Fullscreen';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+            }
+        });
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            const wrapper = document.querySelector('.game-wrapper');
+            if (document.fullscreenElement || 
+                document.webkitFullscreenElement || 
+                document.msFullscreenElement) {
+                wrapper.classList.add('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit Fullscreen';
+            } else {
+                wrapper.classList.remove('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+            }
+        }
+    </script>
+</body>
+</html>

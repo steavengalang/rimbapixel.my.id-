@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Web Game Collection</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Global responsive styles for all games */
+        html, body {
+            overscroll-behavior: contain;
+            touch-action: manipulation;
+        }
+        
+        .game-wrapper {
+            min-height: 100vh;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        
+        .game-container {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+        
+        /* Responsive grid for games list */
+        @media (max-width: 768px) {
+            .game-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .main-header h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-grid {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+        
+        /* Fix for some mobile browsers */
+        @supports (-webkit-touch-callout: none) {
+            .game-wrapper {
+                min-height: -webkit-fill-available;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <header class="main-header">
+            <h1>Web Game Collection</h1>
+            <p>A collection of fun and challenging web games</p>
+            <button id="fullscreenToggle" class="control-button">⛶ Fullscreen</button>
+        </header>
+
+        <div class="game-grid">
+            <a href="snake.html" class="game-card">
+                <div class="game-icon">🐍</div>
+                <h2>Snake</h2>
+                <p>Classic snake game with modern features</p>
+                <div class="game-features">
+                    <span>Classic Gameplay</span>
+                    <span>Power-ups</span>
+                    <span>Speed Increase</span>
+                </div>
+            </a>
+            
+            <a href="tetris.html" class="game-card">
+                <div class="game-icon">🧩</div>
+                <h2>Tetris</h2>
+                <p>Arrange falling blocks to clear lines</p>
+                <div class="game-features">
+                    <span>Classic Tetris</span>
+                    <span>Level System</span>
+                    <span>Hold Piece</span>
+                </div>
+            </a>
+
+            <a href="flappy-bird.html" class="game-card">
+                <div class="game-icon">🐦</div>
+                <h2>Flappy Bird</h2>
+                <p>Navigate through pipes by tapping to flap</p>
+                <div class="game-features">
+                    <span>One-button Control</span>
+                    <span>Physics</span>
+                    <span>Endless Runner</span>
+                </div>
+            </a>
+
+            <a href="game-2048.html" class="game-card">
+                <div class="game-icon">🔢</div>
+                <h2>2048</h2>
+                <p>Combine tiles to reach the 2048 number</p>
+                <div class="game-features">
+                    <span>Strategy Puzzle</span>
+                    <span>Smooth Animations</span>
+                    <span>Addictive Gameplay</span>
+                </div>
+            </a>
+
+            <a href="tower-defense.html" class="game-card">
+                <div class="game-icon">🗼</div>
+                <h2>Tower Defense</h2>
+                <p>Strategic tower placement to defend your base</p>
+                <div class="game-features">
+                    <span>4 Tower Types</span>
+                    <span>Upgrades</span>
+                    <span>Boss Waves</span>
+                </div>
+            </a>
+        </div>
+
+        <footer>
+            <div class="feature-list">
+                <span>🎮 Mobile Support</span>
+                <span>🔊 Sound Effects</span>
+                <span>🏆 High Scores</span>
+                <span>🎨 Modern UI</span>
+                <span>📱 Fullscreen Mode</span>
+                <span>🔄 Consistent UI</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Global App object for theme and functionality management
+        const App = {
+            theme: 'dark',
+            init() {
+                this.detectSystemTheme();
+                this.initializeTheme();
+                this.setupEventListeners();
+            },
+            
+            detectSystemTheme() {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    this.theme = 'dark';
+                } else {
+                    this.theme = 'light';
+                }
+            },
+            
+            initializeTheme() {
+                document.body.setAttribute('data-theme', this.theme);
+            },
+            
+            setupEventListeners() {
+                // Add any global event listeners here
+                console.log('App initialized successfully');
+            }
+        };
+        
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+        });
+        
+        // Fullscreen functionality
+        document.getElementById('fullscreenToggle').addEventListener('click', () => {
+            const wrapper = document.querySelector('.game-wrapper');
+            
+            if (!document.fullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
+                }
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit Fullscreen';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+            }
+        });
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            const wrapper = document.querySelector('.game-wrapper');
+            if (document.fullscreenElement || 
+                document.webkitFullscreenElement || 
+                document.msFullscreenElement) {
+                wrapper.classList.add('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit Fullscreen';
+            } else {
+                wrapper.classList.remove('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+            }
+        }
+    </script>
+</body>
+</html> 

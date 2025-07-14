@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snake Game - Web Game Collection</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-wrapper">
+        <div class="top-bar">
+            <a href="index.html" class="back-button">← Back</a>
+            <button id="fullscreenToggle" class="control-button">⛶ Fullscreen</button>
+        </div>
+        
+        <div class="game-container">
+            <div class="snake-layout">
+                <div class="game-header">
+                    <div class="resource-display">
+                        <div class="resource-item">
+                            <span class="resource-icon">🏆</span>
+                            Score: <span id="score">0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-icon">🌟</span>
+                            High Score: <span id="highScore">0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-icon">🎖️</span>
+                            Level: <span id="level">1</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="game-board snake-board">
+                    <canvas id="gameCanvas" width="600" height="600"></canvas>
+                </div>
+                
+                <div class="game-controls">
+                    <div class="control-group">
+                        <button id="startGame" class="control-button">▶️ Start Game</button>
+                        <button id="pauseGame" class="control-button">⏸️ Pause</button>
+                        <button id="soundToggle" class="control-button">🔊 Sound</button>
+                    </div>
+                </div>
+                
+                <div class="mobile-controls">
+                    <button id="upButton" class="direction-button">⬆️</button>
+                    <div class="horizontal-controls">
+                        <button id="leftButton" class="direction-button">⬅️</button>
+                        <button id="rightButton" class="direction-button">➡️</button>
+                    </div>
+                    <button id="downButton" class="direction-button">⬇️</button>
+                </div>
+                
+                <div class="power-up-section">
+                    <h3>Power-ups</h3>
+                    <div class="power-up-grid">
+                        <button id="speedBoost" class="power-up-button" disabled>
+                            <span class="power-up-icon">⚡</span>
+                            <span class="power-up-text">Speed Boost</span>
+                        </button>
+                        <button id="shield" class="power-up-button" disabled>
+                            <span class="power-up-icon">🛡️</span>
+                            <span class="power-up-text">Shield</span>
+                        </button>
+                        <button id="shrink" class="power-up-button" disabled>
+                            <span class="power-up-icon">📏</span>
+                            <span class="power-up-text">Shrink</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="snake.js"></script>
+    
+    <script>
+        // Fullscreen functionality
+        document.getElementById('fullscreenToggle').addEventListener('click', () => {
+            const wrapper = document.querySelector('.game-wrapper');
+            
+            if (!document.fullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
+                }
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit Fullscreen';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+            }
+        });
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            const wrapper = document.querySelector('.game-wrapper');
+            if (document.fullscreenElement || 
+                document.webkitFullscreenElement || 
+                document.msFullscreenElement) {
+                wrapper.classList.add('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit Fullscreen';
+            } else {
+                wrapper.classList.remove('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+            }
+        }
+        
+        // Add pause button if not already in snake.js
+        if (document.getElementById('pauseGame')) {
+            document.getElementById('pauseGame').addEventListener('click', function() {
+                // This assumes the snake game has a togglePause function
+                if (typeof window.snakeGame !== 'undefined' && typeof window.snakeGame.togglePause === 'function') {
+                    window.snakeGame.togglePause();
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

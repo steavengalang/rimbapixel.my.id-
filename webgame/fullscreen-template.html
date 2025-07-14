@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game Template</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Game-specific styles go here */
+        .game-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .game-board {
+            position: relative;
+            width: 100%;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .game-wrapper.fullscreen .game-board {
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .game-wrapper.fullscreen canvas {
+            max-height: 85vh;
+        }
+        
+        .game-controls {
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .play-again {
+            background: linear-gradient(145deg, #2cb978, #218c57);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 12px 30px;
+            margin: 20px auto;
+            display: block;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(44, 185, 120, 0.4);
+        }
+        
+        .play-again:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(44, 185, 120, 0.6);
+        }
+        
+        .game-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+            text-align: center;
+        }
+        
+        .game-overlay h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-wrapper.fullscreen .top-bar {
+                padding: 5px;
+            }
+            
+            .game-board {
+                height: 60vh;
+            }
+            
+            .game-wrapper.fullscreen .game-board {
+                height: 75vh;
+                padding: 10px;
+            }
+            
+            .game-overlay h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <div class="top-bar">
+            <a href="index.html" class="back-button">← Back</a>
+            <button id="fillModeToggle" class="fill-mode-toggle">Fill Mode: Off</button>
+            <button id="fullscreenToggle" class="control-button">⛶ Fullscreen</button>
+        </div>
+        
+        <div class="game-container">
+            <div class="game-layout">
+                <div class="game-header">
+                    <div class="resource-display">
+                        <div class="resource-item">
+                            <span class="resource-icon">🏆</span>
+                            Score: <span id="score">0</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-icon">❤️</span>
+                            Lives: <span id="lives">3</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-icon">🌟</span>
+                            Level: <span id="level">1</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="game-board">
+                    <canvas id="gameCanvas"></canvas>
+                    
+                    <!-- Overlay game over (tersembunyi secara default) -->
+                    <div id="gameOver" class="game-overlay" style="display: none;">
+                        <h2>Game Over</h2>
+                        <p>Your Score: <span id="finalScore">0</span></p>
+                        <button id="playAgain" class="play-again">Play Again</button>
+                    </div>
+                    
+                    <!-- Popup pesan (tersembunyi secara default) -->
+                    <div id="gameMessage" class="game-message"></div>
+                </div>
+                
+                <div class="game-controls">
+                    <div class="control-group">
+                        <button id="startGame" class="control-button">▶️ Start Game</button>
+                        <button id="pauseGame" class="control-button">⏸️ Pause</button>
+                        <button id="soundToggle" class="control-button">🔊 Sound</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Fullscreen functionality
+        document.getElementById('fullscreenToggle').addEventListener('click', () => {
+            const wrapper = document.querySelector('.game-wrapper');
+            
+            if (!document.fullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
+                }
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit';
+                document.getElementById('fullscreenToggle').classList.add('fullscreen-toggle-active');
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+                document.getElementById('fullscreenToggle').classList.remove('fullscreen-toggle-active');
+            }
+        });
+        
+        // Fill Mode Toggle
+        let fillModeActive = false;
+        const fillModeToggle = document.getElementById('fillModeToggle');
+        
+        if (fillModeToggle) {
+            fillModeToggle.addEventListener('click', function() {
+                const wrapper = document.querySelector('.game-wrapper');
+                fillModeActive = !fillModeActive;
+                
+                if (fillModeActive) {
+                    wrapper.classList.add('fill-mode');
+                    this.textContent = 'Fill Mode: On';
+                    localStorage.setItem('gameFillMode', 'true');
+                } else {
+                    wrapper.classList.remove('fill-mode');
+                    this.textContent = 'Fill Mode: Off';
+                    localStorage.setItem('gameFillMode', 'false');
+                }
+                
+                // Immediately resize the canvas if in fullscreen
+                if (document.fullscreenElement) {
+                    resizeGameCanvas();
+                }
+            });
+            
+            // Hide fill mode toggle initially (only show in fullscreen)
+            fillModeToggle.style.display = 'none';
+        }
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            const wrapper = document.querySelector('.game-wrapper');
+            
+            if (document.fullscreenElement || 
+                document.webkitFullscreenElement || 
+                document.msFullscreenElement) {
+                wrapper.classList.add('fullscreen');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Exit';
+                document.getElementById('fullscreenToggle').classList.add('fullscreen-toggle-active');
+                document.body.classList.add('has-fullscreen');
+                
+                // Show fill mode toggle only in fullscreen
+                if (fillModeToggle) {
+                    fillModeToggle.style.display = 'block';
+                    
+                    // Restore fill mode from preference
+                    if (localStorage.getItem('gameFillMode') === 'true') {
+                        wrapper.classList.add('fill-mode');
+                        fillModeToggle.textContent = 'Fill Mode: On';
+                        fillModeActive = true;
+                    }
+                }
+                
+                // Resize canvas to fit fullscreen
+                setTimeout(resizeGameCanvas, 100);
+            } else {
+                wrapper.classList.remove('fullscreen');
+                wrapper.classList.remove('fill-mode');
+                document.getElementById('fullscreenToggle').textContent = '⛶ Fullscreen';
+                document.getElementById('fullscreenToggle').classList.remove('fullscreen-toggle-active');
+                document.body.classList.remove('has-fullscreen');
+                
+                // Hide fill mode toggle when not in fullscreen
+                if (fillModeToggle) {
+                    fillModeToggle.style.display = 'none';
+                    fillModeActive = false;
+                }
+                
+                // Reset canvas size
+                resetGameCanvas();
+            }
+        }
+        
+        function resizeGameCanvas() {
+            const canvas = document.getElementById('gameCanvas');
+            if (canvas) {
+                const gameBoard = document.querySelector('.game-board');
+                const rect = gameBoard.getBoundingClientRect();
+                
+                // Use clientWidth/clientHeight to avoid scrollbars
+                canvas.width = gameBoard.clientWidth;
+                canvas.height = gameBoard.clientHeight;
+                
+                console.log("Canvas resized to:", canvas.width, "x", canvas.height);
+            }
+        }
+        
+        function resetGameCanvas() {
+            const canvas = document.getElementById('gameCanvas');
+            if (canvas) {
+                canvas.width = 800;
+                canvas.height = 600;
+            }
+        }
+        
+        // Utility function to show game messages
+        function showGameMessage(message, color = '#ffffff', duration = 2000) {
+            const messageEl = document.getElementById('gameMessage');
+            if (!messageEl) return;
+            
+            messageEl.textContent = message;
+            messageEl.style.color = color;
+            messageEl.style.opacity = '1';
+            
+            setTimeout(() => {
+                messageEl.style.opacity = '0';
+            }, duration);
+        }
+    </script>
+</body>
+</html> 
