@@ -1,7 +1,15 @@
 class TowerDefense {
     constructor() {
+        // Pastikan canvas element tersedia
         this.canvas = document.getElementById('gameCanvas');
+        if (!this.canvas) {
+            throw new Error('Canvas element dengan ID "gameCanvas" tidak ditemukan');
+        }
+        
         this.ctx = this.canvas.getContext('2d');
+        if (!this.ctx) {
+            throw new Error('Context 2D tidak dapat diinisialisasi');
+        }
         
         // Status permainan
         this.gameStarted = false;
@@ -122,17 +130,25 @@ class TowerDefense {
     }
     
     init() {
-        // Atur ukuran kanvas setelah semua objek didefinisikan
-        this.resizeCanvas();
+        // Validasi semua element UI yang diperlukan
+        const requiredElements = ['gameCanvas', 'gold', 'lives', 'wave', 'score'];
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
         
-        // Tambahkan event listener setelah inisialisasi awal selesai
-        setTimeout(() => {
-            window.addEventListener('resize', () => this.resizeCanvas());
-        }, 100);
+        if (missingElements.length > 0) {
+            console.warn('Element UI tidak lengkap:', missingElements);
+        }
         
+        // Setup event listeners dan UI terlebih dahulu
         this.setupEventListeners();
         this.updateUI();
         this.showStartScreen();
+        
+        // Atur ukuran kanvas setelah semua setup selesai (delayed)
+        setTimeout(() => {
+            this.resizeCanvas();
+            // Tambahkan event listener resize setelah inisialisasi selesai
+            window.addEventListener('resize', () => this.resizeCanvas());
+        }, 50);
     }
     
     setupEventListeners() {
@@ -1023,13 +1039,17 @@ class TowerDefense {
 
     resizeCanvas() {
         // Safety check: pastikan semua objek sudah diinisialisasi
-        if (!this.base || !this.canvas) {
+        if (!this.base || !this.canvas || !this.ctx) {
             console.warn('resizeCanvas dipanggil sebelum objek diinisialisasi');
             return;
         }
         
+        // Pastikan DOM element tersedia
         const container = document.querySelector('.game-board');
-        if (!container) return;
+        if (!container) {
+            console.warn('Container .game-board tidak ditemukan');
+            return;
+        }
         
         const rect = container.getBoundingClientRect();
         this.canvas.width = rect.width;
@@ -1056,9 +1076,32 @@ class TowerDefense {
             {x: this.canvas.width - 50, y: this.canvas.height * 0.4}
         ];
         
-        // Atur posisi markas di ujung jalur
-        this.base.x = this.canvas.width - 50;
-        this.base.y = this.canvas.height * 0.4;
+        // Atur posisi markas di ujung jalur dengan safety check
+        try {
+            if (this.base && typeof this.base === 'object') {
+                this.base.x = this.canvas.width - 50;
+                this.base.y = this.canvas.height * 0.4;
+            } else {
+                console.error('Base object tidak valid, membuat ulang...');
+                this.base = {
+                    x: this.canvas.width - 50,
+                    y: this.canvas.height * 0.4,
+                    health: 100,
+                    maxHealth: 100,
+                    size: 40
+                };
+            }
+        } catch (error) {
+            console.error('Error setting base position:', error);
+            // Fallback: buat base object baru jika terjadi error
+            this.base = {
+                x: this.canvas.width - 50,
+                y: this.canvas.height * 0.4,
+                health: 100,
+                maxHealth: 100,
+                size: 40
+            };
+        }
         
         // Paksa menggambar ulang jika permainan sudah dimulai
         if (this.gameStarted) {
@@ -1067,7 +1110,27 @@ class TowerDefense {
     }
 }
 
-// Start the game when the page loads
-window.onload = () => {
-    new TowerDefense();
-}; 
+// Mulai game setelah DOM dan semua resource dimuat
+function initTowerDefense() {
+    // Pastikan DOM dan canvas element tersedia
+    if (document.getElementById('gameCanvas')) {
+        try {
+            new TowerDefense();
+        } catch (error) {
+            console.error('Error initializing Tower Defense:', error);
+            // Coba lagi setelah delay
+            setTimeout(initTowerDefense, 500);
+        }
+    } else {
+        console.warn('Canvas element tidak ditemukan, mencoba lagi...');
+        setTimeout(initTowerDefense, 200);
+    }
+}
+
+// Gunakan DOMContentLoaded untuk inisialisasi yang lebih cepat
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTowerDefense);
+} else {
+    // DOM sudah siap
+    initTowerDefense();
+} 
