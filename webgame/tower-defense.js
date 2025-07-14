@@ -124,7 +124,11 @@ class TowerDefense {
     init() {
         // Atur ukuran kanvas setelah semua objek didefinisikan
         this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
+        
+        // Tambahkan event listener setelah inisialisasi awal selesai
+        setTimeout(() => {
+            window.addEventListener('resize', () => this.resizeCanvas());
+        }, 100);
         
         this.setupEventListeners();
         this.updateUI();
@@ -1018,6 +1022,12 @@ class TowerDefense {
     }
 
     resizeCanvas() {
+        // Safety check: pastikan semua objek sudah diinisialisasi
+        if (!this.base || !this.canvas) {
+            console.warn('resizeCanvas dipanggil sebelum objek diinisialisasi');
+            return;
+        }
+        
         const container = document.querySelector('.game-board');
         if (!container) return;
         
@@ -1025,12 +1035,12 @@ class TowerDefense {
         this.canvas.width = rect.width;
         this.canvas.height = rect.height;
         
-        // Make sure canvas is visible
+        // Pastikan kanvas terlihat
         this.canvas.style.display = 'block';
         this.canvas.style.width = '100%';
         this.canvas.style.height = '100%';
         
-        // Set longer path based on canvas size
+        // Atur jalur berdasarkan ukuran kanvas
         this.path = [
             {x: 0, y: this.canvas.height * 0.7},
             {x: this.canvas.width * 0.15, y: this.canvas.height * 0.7},
@@ -1046,11 +1056,11 @@ class TowerDefense {
             {x: this.canvas.width - 50, y: this.canvas.height * 0.4}
         ];
         
-        // Set base position at the end of path
+        // Atur posisi markas di ujung jalur
         this.base.x = this.canvas.width - 50;
         this.base.y = this.canvas.height * 0.4;
         
-        // Force a redraw if game is started
+        // Paksa menggambar ulang jika permainan sudah dimulai
         if (this.gameStarted) {
             this.draw();
         }
