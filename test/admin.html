@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Phishing Simulation Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin-bottom: 10px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .controls h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+        }
+        
+        .btn.danger {
+            background: #dc3545;
+        }
+        
+        .btn.danger:hover {
+            background: #c82333;
+        }
+        
+        .results-table {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .results-table h3 {
+            padding: 20px;
+            background: #f8f9fa;
+            margin: 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .browser-stats, .time-stats {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .photo-preview {
+            width: 60px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .photo-preview:hover {
+            transform: scale(1.1);
+        }
+        
+        .photo-cell {
+            text-align: center;
+            padding: 8px;
+        }
+        
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            margin: 2px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .download-btn:hover {
+            background: #218838;
+        }
+        
+        .photo-placeholder {
+            width: 60px;
+            height: 45px;
+            background: #e9ecef;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #6c757d;
+            margin: 0 auto;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
+        
+        .modal-content {
+            margin: 5% auto;
+            display: block;
+            max-width: 90%;
+            max-height: 80%;
+            border-radius: 8px;
+        }
+        
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #bbb;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔒 Admin Dashboard</h1>
+        <p>Phishing Simulation Results Analysis</p>
+    </div>
+    
+    <div class="container">
+        <div class="warning">
+            ⚠️ <strong>Confidential:</strong> Data ini berisi informasi sensitif untuk internal security assessment saja. 
+            Jangan bagikan atau gunakan untuk tujuan disciplinary action.
+        </div>
+        
+        <!-- Statistics Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Tests</h3>
+                <div class="number" id="totalTests">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Success Rate</h3>
+                <div class="number" id="successRate">0%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Avg Response Time</h3>
+                <div class="number" id="avgResponseTime">0s</div>
+            </div>
+            <div class="stat-card">
+                <h3>Last Test</h3>
+                <div class="number" id="lastTest">N/A</div>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <h3>📊 Data Management</h3>
+            <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
+            <button class="btn" onclick="exportToCSV()">📥 Export CSV</button>
+            <button class="btn" onclick="exportToJSON()">📥 Export JSON</button>
+            <button class="btn" onclick="downloadAllPhotos()" style="background: #17a2b8;">📸 Download All Photos</button>
+            <button class="btn danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+        </div>
+        
+        <!-- Charts -->
+        <div class="chart-container">
+            <div class="browser-stats">
+                <h3>📱 Browser Distribution</h3>
+                <div id="browserChart">Loading...</div>
+            </div>
+            
+            <div class="time-stats">
+                <h3>⏰ Test Timeline</h3>
+                <div id="timeChart">Loading...</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="browser-stats">
+                <h3>📍 Location Distribution</h3>
+                <div id="locationChart">Loading...</div>
+            </div>
+            
+            <div class="time-stats">
+                <h3>📸 Camera Access Stats</h3>
+                <div id="cameraChart">Loading...</div>
+            </div>
+        </div>
+        
+        <!-- Results Table -->
+        <div class="results-table">
+            <h3>📋 Detailed Results</h3>
+            <div class="table-container">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Test ID</th>
+                            <th>Type</th>
+                            <th>Email/Source</th>
+                            <th>IP Address</th>
+                            <th>Location</th>
+                            <th>Browser</th>
+                            <th>Front Camera</th>
+                            <th>Back Camera</th>
+                            <th>Response Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <tr>
+                            <td colspan="10" class="no-data">No data available. Run some tests first.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal untuk preview foto -->
+    <div id="photoModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+    
+    <script>
+        // Load and display data
+        function loadData() {
+            const data = JSON.parse(localStorage.getItem('phishingTestResults') || '[]');
+            return data;
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const data = loadData();
+            
+            // Total tests
+            document.getElementById('totalTests').textContent = data.length;
+            
+            // Success rate (100% since all captured data represents successful phishing)
+            document.getElementById('successRate').textContent = data.length > 0 ? '100%' : '0%';
+            
+            // Average response time
+            if (data.length > 0) {
+                const avgTime = data.reduce((sum, item) => {
+                    if (item.testInfo) {
+                        return sum + (item.testInfo.sessionDuration || 0);
+                    } else if (item.sessionInfo) {
+                        return sum + (item.sessionInfo.loadTime || 0);
+                    }
+                    return sum;
+                }, 0) / data.length;
+                document.getElementById('avgResponseTime').textContent = Math.round(avgTime / 1000) + 's';
+            }
+            
+            // Last test
+            if (data.length > 0) {
+                const lastItem = data[data.length - 1];
+                let lastTestDate;
+                if (lastItem.testInfo) {
+                    lastTestDate = new Date(lastItem.testInfo.timestamp);
+                } else if (lastItem.sessionInfo) {
+                    lastTestDate = new Date(lastItem.sessionInfo.timestamp);
+                } else {
+                    lastTestDate = new Date();
+                }
+                document.getElementById('lastTest').textContent = lastTestDate.toLocaleDateString('id-ID');
+            }
+        }
+        
+        // Update results table
+        function updateTable() {
+            const data = loadData();
+            const tbody = document.getElementById('resultsBody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="no-data">No data available. Run some tests first.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            
+            data.reverse().forEach((item, index) => {
+                const row = document.createElement('tr');
+                
+                // Handle different data structures
+                let timestamp, testId, type, emailOrSource, responseTime;
+                
+                if (item.testInfo) {
+                    // Login form data
+                    timestamp = new Date(item.testInfo.timestamp).toLocaleString('id-ID');
+                    testId = item.testInfo.testId;
+                    type = item.testInfo.type || 'Login Form';
+                    emailOrSource = item.credentials ? item.credentials.email : 'N/A';
+                    responseTime = Math.round((item.testInfo.sessionDuration || 0) / 1000) + 's';
+                } else if (item.sessionInfo) {
+                    // Direct redirect data
+                    timestamp = new Date(item.sessionInfo.timestamp).toLocaleString('id-ID');
+                    testId = item.sessionInfo.testId;
+                    type = 'Direct Redirect';
+                    emailOrSource = item.visitorInfo.referrer || 'Direct';
+                    responseTime = Math.round((item.sessionInfo.loadTime || 0) / 1000) + 's';
+                } else {
+                    // Fallback for old data
+                    timestamp = 'Unknown';
+                    testId = 'Unknown';
+                    type = 'Unknown';
+                    emailOrSource = 'Unknown';
+                    responseTime = 'N/A';
+                }
+                
+                // Format location info
+                let locationStr = 'N/A';
+                if (typeof item.technicalInfo.location === 'object' && item.technicalInfo.location.city) {
+                    locationStr = `${item.technicalInfo.location.city}, ${item.technicalInfo.location.country}`;
+                } else if (typeof item.technicalInfo.location === 'string') {
+                    locationStr = item.technicalInfo.location;
+                }
+                
+                // Generate front camera cell
+                let frontCameraCell = '<div class="photo-placeholder">No Photo</div>';
+                if (item.cameraData && item.cameraData.frontCamera && item.cameraData.frontCamera.success && item.cameraData.frontCamera.image) {
+                    const frontImageId = `front_${index}`;
+                    frontCameraCell = `
+                        <div class="photo-cell">
+                            <img src="${item.cameraData.frontCamera.image}" 
+                                 class="photo-preview" 
+                                 onclick="openModal('${item.cameraData.frontCamera.image}')"
+                                 title="Klik untuk lihat ukuran penuh">
+                            <br>
+                            <button class="download-btn" onclick="downloadPhoto('${item.cameraData.frontCamera.image}', 'front_camera_${testId}.jpg')">
+                                📥 JPG
+                            </button>
+                        </div>
+                    `;
+                } else if (item.cameraData && item.cameraData.frontCamera && !item.cameraData.frontCamera.success) {
+                    frontCameraCell = '<div class="photo-placeholder">❌ Failed</div>';
+                }
+                
+                // Generate back camera cell
+                let backCameraCell = '<div class="photo-placeholder">No Photo</div>';
+                if (item.cameraData && item.cameraData.backCamera && item.cameraData.backCamera.success && item.cameraData.backCamera.image) {
+                    const backImageId = `back_${index}`;
+                    backCameraCell = `
+                        <div class="photo-cell">
+                            <img src="${item.cameraData.backCamera.image}" 
+                                 class="photo-preview" 
+                                 onclick="openModal('${item.cameraData.backCamera.image}')"
+                                 title="Klik untuk lihat ukuran penuh">
+                            <br>
+                            <button class="download-btn" onclick="downloadPhoto('${item.cameraData.backCamera.image}', 'back_camera_${testId}.jpg')">
+                                📥 JPG
+                            </button>
+                        </div>
+                    `;
+                } else if (item.cameraData && item.cameraData.backCamera && !item.cameraData.backCamera.success) {
+                    backCameraCell = '<div class="photo-placeholder">❌ Failed</div>';
+                }
+                
+                row.innerHTML = `
+                    <td>${timestamp}</td>
+                    <td>${testId}</td>
+                    <td><span style="background: ${type === 'Direct Redirect' ? '#28a745' : '#007bff'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${type}</span></td>
+                    <td>${emailOrSource}</td>
+                    <td>${item.technicalInfo.ip}</td>
+                    <td>${locationStr}</td>
+                    <td>${getBrowserName(item.technicalInfo.browser.userAgent)}</td>
+                    <td>${frontCameraCell}</td>
+                    <td>${backCameraCell}</td>
+                    <td>${responseTime}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Update browser chart
+        function updateBrowserChart() {
+            const data = loadData();
+            const browserCount = {};
+            
+            data.forEach(item => {
+                const browser = getBrowserName(item.technicalInfo.browser.userAgent);
+                browserCount[browser] = (browserCount[browser] || 0) + 1;
+            });
+            
+            const chartDiv = document.getElementById('browserChart');
+            
+            if (Object.keys(browserCount).length === 0) {
+                chartDiv.innerHTML = '<p class="no-data">No browser data available</p>';
+                return;
+            }
+            
+            let chartHTML = '';
+            for (const [browser, count] of Object.entries(browserCount)) {
+                const percentage = ((count / data.length) * 100).toFixed(1);
+                chartHTML += `
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>${browser}</span>
+                            <span>${count} (${percentage}%)</span>
+                        </div>
+                        <div style="background: #e9ecef; height: 20px; border-radius: 10px; overflow: hidden;">
+                            <div style="background: #667eea; height: 100%; width: ${percentage}%; transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            chartDiv.innerHTML = chartHTML;
+        }
+        
+        // Update time chart
+        function updateTimeChart() {
+            const data = loadData();
+            const hourCount = {};
+            
+            data.forEach(item => {
+                let timestamp;
+                if (item.testInfo) {
+                    timestamp = item.testInfo.timestamp;
+                } else if (item.sessionInfo) {
+                    timestamp = item.sessionInfo.timestamp;
+                } else {
+                    timestamp = new Date().toISOString();
+                }
+                const hour = new Date(timestamp).getHours();
+                hourCount[hour] = (hourCount[hour] || 0) + 1;
+            });
+            
+            const chartDiv = document.getElementById('timeChart');
+            
+            if (Object.keys(hourCount).length === 0) {
+                chartDiv.innerHTML = '<p class="no-data">No time data available</p>';
+                return;
+            }
+            
+            let chartHTML = '';
+            const maxCount = Math.max(...Object.values(hourCount));
+            
+            for (let hour = 0; hour < 24; hour++) {
+                const count = hourCount[hour] || 0;
+                const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                const timeLabel = `${hour.toString().padStart(2, '0')}:00`;
+                
+                chartHTML += `
+                    <div style="margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 12px;">
+                            <span>${timeLabel}</span>
+                            <span>${count}</span>
+                        </div>
+                        <div style="background: #e9ecef; height: 15px; border-radius: 8px; overflow: hidden;">
+                            <div style="background: #764ba2; height: 100%; width: ${percentage}%; transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            chartDiv.innerHTML = chartHTML;
+        }
+        
+        // Utility functions
+        function getBrowserName(userAgent) {
+            if (userAgent.includes('Chrome')) return 'Google Chrome';
+            if (userAgent.includes('Firefox')) return 'Mozilla Firefox';
+            if (userAgent.includes('Safari')) return 'Safari';
+            if (userAgent.includes('Edge')) return 'Microsoft Edge';
+            if (userAgent.includes('Opera')) return 'Opera';
+            return 'Browser lainnya';
+        }
+        
+        function refreshData() {
+            updateStats();
+            updateTable();
+            updateBrowserChart();
+            updateTimeChart();
+            updateLocationChart();
+            updateCameraChart();
+            
+            // Show success message
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Data Refreshed';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }
+        
+        // Update location chart
+        function updateLocationChart() {
+            const data = loadData();
+            const locationCount = {};
+            
+            data.forEach(item => {
+                let location = 'Unknown';
+                if (typeof item.technicalInfo.location === 'object' && item.technicalInfo.location.country) {
+                    location = item.technicalInfo.location.country;
+                } else if (typeof item.technicalInfo.location === 'string' && item.technicalInfo.location !== 'N/A') {
+                    location = item.technicalInfo.location;
+                }
+                locationCount[location] = (locationCount[location] || 0) + 1;
+            });
+            
+            const chartDiv = document.getElementById('locationChart');
+            
+            if (Object.keys(locationCount).length === 0) {
+                chartDiv.innerHTML = '<p class="no-data">No location data available</p>';
+                return;
+            }
+            
+            let chartHTML = '';
+            for (const [location, count] of Object.entries(locationCount)) {
+                const percentage = ((count / data.length) * 100).toFixed(1);
+                chartHTML += `
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span>🌍 ${location}</span>
+                            <span>${count} (${percentage}%)</span>
+                        </div>
+                        <div style="background: #e9ecef; height: 20px; border-radius: 10px; overflow: hidden;">
+                            <div style="background: #28a745; height: 100%; width: ${percentage}%; transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            chartDiv.innerHTML = chartHTML;
+        }
+        
+        // Update camera chart
+        function updateCameraChart() {
+            const data = loadData();
+            let cameraStats = {
+                'Front Camera Success': 0,
+                'Back Camera Success': 0,
+                'Both Cameras Success': 0,
+                'No Camera Access': 0,
+                'Camera Not Attempted': 0
+            };
+            
+            data.forEach(item => {
+                if (!item.cameraData) {
+                    cameraStats['Camera Not Attempted']++;
+                    return;
+                }
+                
+                const frontOk = item.cameraData.frontCamera && item.cameraData.frontCamera.success;
+                const backOk = item.cameraData.backCamera && item.cameraData.backCamera.success;
+                
+                if (frontOk && backOk) {
+                    cameraStats['Both Cameras Success']++;
+                } else if (frontOk) {
+                    cameraStats['Front Camera Success']++;
+                } else if (backOk) {
+                    cameraStats['Back Camera Success']++;
+                } else {
+                    cameraStats['No Camera Access']++;
+                }
+            });
+            
+            const chartDiv = document.getElementById('cameraChart');
+            
+            if (data.length === 0) {
+                chartDiv.innerHTML = '<p class="no-data">No camera data available</p>';
+                return;
+            }
+            
+            let chartHTML = '';
+            for (const [status, count] of Object.entries(cameraStats)) {
+                if (count === 0) continue;
+                
+                const percentage = ((count / data.length) * 100).toFixed(1);
+                let bgColor = '#6c757d';
+                if (status.includes('Success')) bgColor = '#28a745';
+                if (status.includes('No Camera')) bgColor = '#dc3545';
+                
+                chartHTML += `
+                    <div style="margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 12px;">
+                            <span>📱 ${status}</span>
+                            <span>${count} (${percentage}%)</span>
+                        </div>
+                        <div style="background: #e9ecef; height: 15px; border-radius: 8px; overflow: hidden;">
+                            <div style="background: ${bgColor}; height: 100%; width: ${percentage}%; transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            chartDiv.innerHTML = chartHTML;
+        }
+        
+        function exportToCSV() {
+            const data = loadData();
+            
+            if (data.length === 0) {
+                alert('No data to export.');
+                return;
+            }
+            
+            let csvContent = 'Timestamp,Test ID,Type,Email/Source,IP Address,Location City,Location Country,Browser,Platform,User Agent,Front Camera Status,Back Camera Status,Front Camera Dimensions,Back Camera Dimensions,Response Time\n';
+            
+            data.forEach(item => {
+                // Handle different data structures
+                let timestamp, testId, type, emailOrSource, responseTime;
+                
+                if (item.testInfo) {
+                    // Login form data
+                    timestamp = item.testInfo.timestamp;
+                    testId = item.testInfo.testId;
+                    type = item.testInfo.type || 'Login Form';
+                    emailOrSource = item.credentials ? item.credentials.email : 'N/A';
+                    responseTime = Math.round((item.testInfo.sessionDuration || 0) / 1000);
+                } else if (item.sessionInfo) {
+                    // Direct redirect data
+                    timestamp = item.sessionInfo.timestamp;
+                    testId = item.sessionInfo.testId;
+                    type = 'Direct Redirect';
+                    emailOrSource = item.visitorInfo.referrer || 'Direct';
+                    responseTime = Math.round((item.sessionInfo.loadTime || 0) / 1000);
+                } else {
+                    // Fallback
+                    timestamp = 'Unknown';
+                    testId = 'Unknown';
+                    type = 'Unknown';
+                    emailOrSource = 'Unknown';
+                    responseTime = 0;
+                }
+                
+                // Format location for CSV
+                let locationCity = 'N/A';
+                let locationCountry = 'N/A';
+                if (typeof item.technicalInfo.location === 'object' && item.technicalInfo.location.city) {
+                    locationCity = item.technicalInfo.location.city;
+                    locationCountry = item.technicalInfo.location.country;
+                } else if (typeof item.technicalInfo.location === 'string') {
+                    locationCity = item.technicalInfo.location;
+                }
+                
+                // Format camera data for CSV dengan detail lebih lengkap
+                let frontCameraStatus = 'N/A';
+                let backCameraStatus = 'N/A';
+                let frontCameraDimensions = 'N/A';
+                let backCameraDimensions = 'N/A';
+                
+                if (item.cameraData) {
+                    // Front camera data
+                    if (item.cameraData.frontCamera) {
+                        frontCameraStatus = item.cameraData.frontCamera.success ? 'Success' : 'Failed';
+                        frontCameraDimensions = item.cameraData.frontCamera.dimensions || 'N/A';
+                    }
+                    
+                    // Back camera data
+                    if (item.cameraData.backCamera) {
+                        backCameraStatus = item.cameraData.backCamera.success ? 'Success' : 'Failed';
+                        backCameraDimensions = item.cameraData.backCamera.dimensions || 'N/A';
+                    }
+                }
+                
+                const row = [
+                    timestamp,
+                    testId,
+                    type,
+                    emailOrSource,
+                    item.technicalInfo.ip,
+                    locationCity,
+                    locationCountry,
+                    getBrowserName(item.technicalInfo.browser.userAgent),
+                    item.technicalInfo.browser.platform,
+                    `"${item.technicalInfo.browser.userAgent}"`,
+                    frontCameraStatus,
+                    backCameraStatus,
+                    frontCameraDimensions,
+                    backCameraDimensions,
+                    responseTime
+                ].map(field => `"${field}"`).join(',');
+                
+                csvContent += row + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `phishing_simulation_results_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function exportToJSON() {
+            const data = loadData();
+            
+            if (data.length === 0) {
+                alert('No data to export.');
+                return;
+            }
+            
+            const jsonData = {
+                exportDate: new Date().toISOString(),
+                totalRecords: data.length,
+                data: data
+            };
+            
+            const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `phishing_simulation_results_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function clearAllData() {
+            if (confirm('Are you sure you want to delete all phishing simulation data? This action cannot be undone.')) {
+                localStorage.removeItem('phishingTestResults');
+                refreshData();
+                alert('All data has been cleared.');
+            }
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(refreshData, 30000);
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+                e.preventDefault();
+                refreshData();
+            }
+        });
+        
+        // Functions untuk modal dan download foto
+        function openModal(imageSrc) {
+            const modal = document.getElementById('photoModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'block';
+            modalImg.src = imageSrc;
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('photoModal');
+            modal.style.display = 'none';
+        }
+        
+        // Close modal ketika klik background
+        window.onclick = function(event) {
+            const modal = document.getElementById('photoModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Function untuk download foto dalam format JPG/PNG
+        function downloadPhoto(base64Data, filename) {
+            try {
+                // Create link element untuk download
+                const link = document.createElement('a');
+                link.href = base64Data;
+                link.download = filename || 'camera_capture.jpg';
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Show feedback
+                console.log(`📸 Downloaded: ${filename}`);
+            } catch (error) {
+                console.error('Download failed:', error);
+                alert('Gagal mendownload foto. Silakan coba lagi.');
+            }
+        }
+        
+        // Function untuk download semua foto sekaligus
+        function downloadAllPhotos() {
+            const data = loadData();
+            let photoCount = 0;
+            
+            data.forEach((item, index) => {
+                if (item.cameraData) {
+                    const testId = item.sessionInfo ? item.sessionInfo.testId : item.testInfo?.testId || `test_${index}`;
+                    
+                    // Download front camera jika ada
+                    if (item.cameraData.frontCamera && item.cameraData.frontCamera.success && item.cameraData.frontCamera.image) {
+                        setTimeout(() => {
+                            downloadPhoto(item.cameraData.frontCamera.image, `front_camera_${testId}.jpg`);
+                        }, photoCount * 100); // Delay untuk avoid browser blocking
+                        photoCount++;
+                    }
+                    
+                    // Download back camera jika ada
+                    if (item.cameraData.backCamera && item.cameraData.backCamera.success && item.cameraData.backCamera.image) {
+                        setTimeout(() => {
+                            downloadPhoto(item.cameraData.backCamera.image, `back_camera_${testId}.jpg`);
+                        }, photoCount * 100);
+                        photoCount++;
+                    }
+                }
+            });
+            
+            if (photoCount > 0) {
+                alert(`📸 Memulai download ${photoCount} foto...`);
+            } else {
+                alert('❌ Tidak ada foto yang tersedia untuk didownload.');
+            }
+        }
+        
+        console.log('🔒 Phishing Simulation Admin Dashboard');
+        console.log('📸 Camera Photo Features Enabled');
+        console.log('Keyboard shortcuts:');
+        console.log('- Ctrl+Shift+R: Refresh data');
+    </script>
+</body>
+</html> 
