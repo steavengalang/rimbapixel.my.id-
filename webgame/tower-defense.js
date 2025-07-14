@@ -3,10 +3,6 @@ class TowerDefense {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         
-        // Atur ukuran kanvas
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
-        
         // Status permainan
         this.gameStarted = false;
         this.gamePaused = false;
@@ -126,6 +122,10 @@ class TowerDefense {
     }
     
     init() {
+        // Atur ukuran kanvas setelah semua objek didefinisikan
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+        
         this.setupEventListeners();
         this.updateUI();
         this.showStartScreen();
